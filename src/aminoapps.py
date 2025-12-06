@@ -40,11 +40,9 @@ class AminoApps:
 			"start": start,
 			"size": size
 		}
-		return objects.ChatThreads(
-			requests.post(
-				f"{self.api}/my-chat-threads",
-				json=data,
-				headers=self.headers).json()["result"]["threadList"]).ChatThreads
+		response = requests.post(
+			f"{self.api}/my-chat-threads", json=data, headers=self.headers).json()
+		return objects.ChatThreads(response["result"]["threadList"]).parse()
 
 	def get_joined_communities(self) -> dict:
 		return convert(
@@ -314,11 +312,10 @@ class AminoApps:
 			json=data,
 			headers=self.headers).json()
 		
-	def get_online_users(self, ndc_id: int) -> dict:
-		return objects.MembersList(
-			requests.get(
-				f"{self.api}/x{ndc_id}/online-members",
-				headers=self.headers).json()["result"]["onlineMembersList"]).MembersList
+	def get_online_users(self, ndc_id: int) -> objects.MembersList:
+		response = requests.get(
+			f"{self.api}/x{ndc_id}/online-members", headers=self.headers).json()
+		return objects.MembersList((response["result"]["onlineMembersList"]).parse()
 	
 	def check_thread(self, ndc_id: int) -> dict:
 		data = {"ndcId": f"x{ndc_id}"}
