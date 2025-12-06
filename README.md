@@ -15,14 +15,6 @@ Provides simple access to login, chats, profiles, and Amino internal objects.
 ```python
 import aminoapps
 
-client = aminoapps.AminoApps(device_id="")
-client.login_sid(sid="")
-```
-
-## 🛠️ Minimal Working Example
-```python
-import aminoapps
-
 amino = aminoapps.AminoApps(device_id="")
 amino.login_sid(sid="")
 
