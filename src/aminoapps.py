@@ -49,10 +49,7 @@ class AminoApps:
 			requests.get(
 				f"{self.partial_api}/global-chat-communities", headers=self.headers).text)
 
-	def search_community(
-			self,
-			query: str,
-			page: int = 1) -> dict:
+	def search_community(self, query: str, page: int = 1) -> dict:
 		return convert(
 			requests.get(
 				f"{self.partial_api}/community/search-suggestion?q={query}&page={page}",
@@ -147,10 +144,7 @@ class AminoApps:
 		return requests.post(
 			f"{self.api}/update-account/{self.user_id}", json=data, headers=self.headers).json()
 	
-	def join_thread(
-			self,
-			ndc_id: int,
-			thread_id: str) -> dict:
+	def join_thread(self, ndc_id: int, thread_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"threadId": thread_id
@@ -158,10 +152,7 @@ class AminoApps:
 		return requests.post(
 			f"{self.api}/join-thread", json=data, headers=self.headers).json()
 	
-	def leave_thread(
-			self,
-			ndc_id: int,
-			thread_id: str) -> dict:
+	def leave_thread(self, ndc_id: int, thread_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}", 
 			"threadId": thread_id
@@ -169,10 +160,7 @@ class AminoApps:
 		return requests.post(
 			f"{self.api}/leave-thread", json=data, headers=self.headers).json()
 	
-	def follow_user(
-			self,
-			ndc_id: int,
-			user_id: str) -> dict:
+	def follow_user(self, ndc_id: int, user_id: str) -> dict:
 		data = {
 			"followee_id": user_id,
 			"ndcId": f"x{ndc_id}"
@@ -180,10 +168,7 @@ class AminoApps:
 		return requests.post(
 			f"{self.api}/follow-user", json=data, headers=self.headers).json()
 	
-	def unfollow_user(
-			self,
-			ndc_id: int,
-			user_id: str) -> dict:
+	def unfollow_user(self, ndc_id: int, user_id: str) -> dict:
 		data = {
 			"followee_id": user_id,
 			"follower_id": self.user_id,
@@ -349,10 +334,7 @@ class AminoApps:
 		return requests.get(
 			f"{self.api}/get-blog-category?ndcId={ndc_id}", headers=self.headers).json()
 
-	def delete_blog(
-			self,
-			ndc_id: int,
-			blog_id: str) -> dict:
+	def delete_blog(self, ndc_id: int, blog_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"postId": blog_id,
@@ -512,10 +494,7 @@ class AminoApps:
 			f"{self.api}/chat/live-threads?ndcId=x{ndc_id}&start={start}&size={size}",
 			headers=self.headers).json()
 	
-	def get_thread(
-			self,
-			ndc_id: int,
-			thread_id: str) -> dict:
+	def get_thread(self, ndc_id: int, thread_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"threadId": thread_id
@@ -523,10 +502,7 @@ class AminoApps:
 		return requests.post(
 			f"{self.api}/get-one-thread", json=data, headers=self.headers).json()
 	
-	def get_blog(
-			self,
-			ndc_id: int,
-			blog_id: str) -> dict:
+	def get_blog(self, ndc_id: int, blog_id: str) -> dict:
 		return requests.get(
 			f"{self.web_api}/x{ndc_id}/blog/{blog_id}", headers=self.headers).json()
 	
