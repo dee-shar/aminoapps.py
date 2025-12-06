@@ -8,15 +8,14 @@ from html_to_json import convert
 class AminoApps:
 	def __init__(self, device_id: str) -> None:
 		self.api = "https://aminoapps.com/api"
-		self.web = "https://aminoapps.com/web"
-		self.community = "https://aminoapps.com/c"
-		self.partial = "https://aminoapps.com/partial"
+		self.web_api = "https://aminoapps.com/web"
+		self.community_api = "https://aminoapps.com/c"
+		self.partial_api = "https://aminoapps.com/partial"
 		self.device_id = device_id
 		self.headers = {
-			"user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36",
-			"x-requested-with": "xmlhttprequest"
+			"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36",
+			"X-Requested-With": "XMLHttpRequest"
 		}
-		
    
 	def login_sid(self, sid: str) -> dict:
 		data = loads(b64decode(
@@ -50,8 +49,7 @@ class AminoApps:
 	def get_joined_communities(self) -> dict:
 		return convert(
 			requests.get(
-				f"{self.partial}/global-chat-communities",
-				headers=self.headers).text)
+				f"{self.partial_api}/global-chat-communities", headers=self.headers).text)
 
 	def search_community(
 			self,
@@ -59,7 +57,7 @@ class AminoApps:
 			page: int = 1) -> dict:
 		return convert(
 			requests.get(
-				f"{self.partial}/community/search-suggestion?q={query}&page={page}",
+				f"{self.partial_api}/community/search-suggestion?q={query}&page={page}",
 				headers=self.headers).text)
 
 	def send_message(
@@ -80,9 +78,7 @@ class AminoApps:
 			}
 		}
 		return requests.post(
-			f"{self.api}/add-chat-message",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/add-chat-message", json=data, headers=self.headers).json()
 
 	def send_image(
 			self,
@@ -103,9 +99,7 @@ class AminoApps:
 			}
 		}
 		return requests.post(
-			f"{self.api}/add-chat-message",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/add-chat-message", json=data, headers=self.headers).json()
 	
 	def send_sticker(
 			self,
@@ -125,9 +119,7 @@ class AminoApps:
 			}
 		}
 		return requests.post(
-			f"{self.api}/add-chat-message",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/add-chat-message", json=data, headers=self.headers).json()
 		
 	def submit_comment(
 			self,
@@ -150,18 +142,12 @@ class AminoApps:
 			data["postType"] = "user"
 			data["postId"] = user_id
 		return requests.post(
-			f"{self.api}/submit_comment",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/submit_comment", json=data, headers=self.headers).json()
 	
-	def update_account(self, nickname: str = None) -> dict:
-		data = {}
-		if nickname:
-			data["nickname"] = nickname
+	def update_account(self, nickname: str) -> dict:
+		data = {"nickname": nickname}
 		return requests.post(
-			f"{self.api}/update-account/{self.user_id}",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/update-account/{self.user_id}", json=data, headers=self.headers).json()
 	
 	def join_thread(
 			self,
@@ -172,9 +158,7 @@ class AminoApps:
 			"threadId": thread_id
 		}
 		return requests.post(
-			f"{self.api}/join-thread",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/join-thread", json=data, headers=self.headers).json()
 	
 	def leave_thread(
 			self,
@@ -185,9 +169,7 @@ class AminoApps:
 			"threadId": thread_id
 		}
 		return requests.post(
-			f"{self.api}/leave-thread",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/leave-thread", json=data, headers=self.headers).json()
 	
 	def follow_user(
 			self,
@@ -198,9 +180,7 @@ class AminoApps:
 			"ndcId": f"x{ndc_id}"
 		}
 		return requests.post(
-			f"{self.api}/follow-user",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/follow-user", json=data, headers=self.headers).json()
 	
 	def unfollow_user(
 			self,
@@ -212,18 +192,14 @@ class AminoApps:
 			"ndcId": f"x{ndc_id}"
 		}
 		return requests.post(
-			f"{self.api}/unfollow-user",
-			json=data,
-			headers=self.headers).json()
-	
+			f"{self.api}/unfollow-user", json=data, headers=self.headers).json()
+				
 	def vote(
 			self,
 			ndc_id: int,
 			blog_id: str = None,
 			wiki_id: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if blog_id:
 			data["logType"] = "blog"
 			data["postType"] = "blog"
@@ -234,18 +210,14 @@ class AminoApps:
 			data["postId"] = wiki_id
 		data["postId"] = post_id
 		return requests.post(
-			f"{self.api}/vote",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/vote", json=data, headers=self.headers).json()
 	
 	def unvote(
 			self,
 			ndc_id: int,
 			blog_id: str = None,
 			wiki_id: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if blog_id:
 			data["logType"] = "blog"
 			data["postType"] = "blog"
@@ -255,46 +227,32 @@ class AminoApps:
 			data["postType"] = "wiki"
 			data["postId"] = wiki_id
 		return requests.post(
-			f"{self.api}/unvote",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/unvote", json=data, headers=self.headers).json()
 	
 	def join_community(
 			self,
 			ndc_id: int,
 			invite_code: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if invite_code:
 			data["InviteCode"] = invite_code
 		return requests.post(
-			f"{self.api}/join",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/join", json=data, headers=self.headers).json()
 	
 	def leave_community(self, ndc_id: int) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		return requests.post(
-			f"{self.api}/leave",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/leave", json=data, headers=self.headers).json()
 
 	def request_to_join_community(
 			self,
 			ndc_id: int,
 			message: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if message:
 			data["message"] = message
 		return requests.post(
-			f"{self.api}/request_join",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/request_join", json=data, headers=self.headers).json()
 	
 	def add_flag(
 			self,
@@ -323,14 +281,10 @@ class AminoApps:
 			data["objectId"] = thread_id
 			data["objectType"] = 12
 		return requests.post(
-			f"{self.api}/add-flag",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/add-flag", json=data, headers=self.headers).json()
 	
 	def send_active_object(self, ndc_id: int) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		return requests.post(
 			f"{self.api}/community/stats/web-user-active-time",
 			json=data,
@@ -338,13 +292,10 @@ class AminoApps:
 	
 	def get_websocket_url(self) -> dict:
 		return requests.get(
-			f"{self.api}/chat/web-socket-url",
-			headers=self.headers).json()
+			f"{self.api}/chat/web-socket-url", headers=self.headers).json()
 
 	def get_blocked_users(self) -> dict:
-		return requests.get(
-			f"{self.api}/block/full-list",
-			headers=self.headers).json()
+		return requests.get(f"{self.api}/block/full-list", headers=self.headers).json()
 	
 	def create_chat_thread(
 			self,
@@ -363,22 +314,16 @@ class AminoApps:
 			json=data,
 			headers=self.headers).json()
 		
-	def get_online_users(
-			self,
-			ndc_id: int) -> objects.MembersList:
+	def get_online_users(self, ndc_id: int) -> dict:
 		return objects.MembersList(
 			requests.get(
 				f"{self.api}/x{ndc_id}/online-members",
 				headers=self.headers).json()["result"]["onlineMembersList"]).MembersList
 	
 	def check_thread(self, ndc_id: int) -> dict:
-		data = {
-			"ndcId": f"x{ndc_id}"
-		}
+		data = {"ndcId": f"x{ndc_id}"}
 		return requests.post(
-			f"{self.api}/thread-check",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/thread-check", json=data, headers=self.headers).json()
 
 	def link_translation(
 			self,
@@ -387,9 +332,7 @@ class AminoApps:
 			blog_id: str = None,
 			wiki_id: str = None,
 			thread_id: str = None) -> dict:
-		data = {
-			"ndcId": f"x{ndc_id}"
-		}
+		data = {"ndcId": f"x{ndc_id}"}
 		if user_id:
 			data["objectId"] = user_id
 			data["objectType"] = 0
@@ -403,14 +346,11 @@ class AminoApps:
 			data["objectId"] = thread_id
 			data["objectType"] = 12
 		return requests.post(
-			f"{self.api}/link-translation",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/link-translation", json=data, headers=self.headers).json()
 
 	def get_blog_categories(self, ndc_id: int) -> dict:
 		return requests.get(
-			f"{self.api}/get-blog-category?ndcId={ndc_id}",
-			headers=self.headers).json()
+			f"{self.api}/get-blog-category?ndcId={ndc_id}", headers=self.headers).json()
 
 	def delete_blog(
 			self,
@@ -422,9 +362,7 @@ class AminoApps:
 			"postType": "blog"
 		}
 		return requests.post(
-			f"{self.api}/post/delete",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/post/delete", json=data, headers=self.headers).json()
 	
 	def get_thread_users(
 			self,
@@ -456,18 +394,11 @@ class AminoApps:
 			"size": size
 		}
 		return requests.post(
-			f"{self.api}/chat-thread-messages",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/chat-thread-messages", json=data, headers=self.headers).json()
 	
-	
-	def get_blog_votes(
-			self,
-			ndc_id: int,
-			blog_id: str) -> dict:
+	def get_blog_votes(self, ndc_id: int, blog_id: str) -> dict:
 		return requests.get(
-			f"{self.api}/x{ndc_id}/blog/{blog_id}/votes",
-			headers=self.headers).json()
+			f"{self.api}/x{ndc_id}/blog/{blog_id}/votes", headers=self.headers).json()
 	
 	def poll_option(
 			self,
@@ -477,7 +408,6 @@ class AminoApps:
 		return requests.post(
 			f"{self.api}/poll-option/x{ndc_id}/{blog_id}/{option_id}/vote",
 			headers=self.headers).json()
-	
 	
 	def register(
 			self,
@@ -509,9 +439,7 @@ class AminoApps:
 			}
 		}
 		return requests.post(
-			f"{self.api}/register",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/register", json=data, headers=self.headers).json()
 	
 	def check_security_validation(
 			self,
@@ -551,9 +479,7 @@ class AminoApps:
 			data["postType"] = "wiki"
 			data["postId"] = wiki_id
 		return requests.post(
-			f"{self.api}/remove_comment",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/remove_comment", json=data, headers=self.headers).json()
 	
 	def find_exist_single_chat(
 			self,
@@ -569,18 +495,12 @@ class AminoApps:
 			headers=self.headers).json()
 	
 	def get_user_profile(self, ndc_id: int) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		return requests.post(
-			f"{self.api}/get-user-profile",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/get-user-profile", json=data, headers=self.headers).json()
 	
 	def delete_account(self, secret: str) -> dict:
-		data = {
-			"secret": secret
-		}
+		data = {"secret": secret}
 		return requests.post(
 			f"{self.api}/account/delete-request",
 			json=data,
@@ -604,16 +524,14 @@ class AminoApps:
 			"threadId": thread_id
 		}
 		return requests.post(
-			f"{self.api}/get-one-thread",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/get-one-thread", json=data, headers=self.headers).json()
 	
 	def get_blog(
 			self,
 			ndc_id: int,
 			blog_id: str) -> dict:
 		return requests.get(
-			f"{self.web}/x{ndc_id}/blog/{blog_id}", headers=self.headers).json()
+			f"{self.web_api}/x{ndc_id}/blog/{blog_id}", headers=self.headers).json()
 	
 	def get_user_profile(
 			self,
@@ -624,21 +542,14 @@ class AminoApps:
 			"userId": user_id
 		}
 		return requests.post(
-			f"{self.api}/chat/get-user-profile",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/chat/get-user-profile", json=data, headers=self.headers).json()
 	
 	def pick_locale(self, locale: str = "en") -> dict:
-		data = {
-			"locale": locale
-		}
+		data = {"locale": locale}
 		return requests.post(
-			f"{self.api}/pick-locale",
-			json=data,
-			headers=self.headers).json()
+			f"{self.api}/pick-locale", json=data, headers=self.headers).json()
 
 	def get_public_chats(self, ndc_id: int) -> dict:
 		return convert(
 			requests.get(
-				f"{self.partial}/public-chat-threads/x{ndc_id}",
-				headers=self.headers).text)
+				f"{self.partial_api}/public-chat-threads/x{ndc_id}", headers=self.headers).text)
