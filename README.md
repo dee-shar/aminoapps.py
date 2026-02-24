@@ -13,9 +13,9 @@ Provides simple access to login, chats, profiles, and Amino internal objects.
 
 ## 🧩 Basic Usage
 ```python
-import aminoapps
+from aminoapps import AminoApps
 
-amino = aminoapps.AminoApps(device_id="")
+amino = AminoApps(device_id="")
 amino.login_sid(sid="")
 
 account = amino.get_user_profile()
