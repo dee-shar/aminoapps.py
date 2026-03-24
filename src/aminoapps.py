@@ -1,9 +1,9 @@
 from json import loads
 from utils import objects
 from base64 import b64decode
-from functools import reduce
 from requests import Session
 from html_to_json import convert
+
 
 class AminoApps:
 	def __init__(self, device_id: str) -> None:
@@ -15,22 +15,24 @@ class AminoApps:
 		self.session = Session()
 		self.session.headers = {
 			"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36",
-			"X-Requested-With": "XMLHttpRequest"
-		}
-   
+			"X-Requested-With": "XMLHttpRequest"}
+
+	def _post(self, endpoint: str, data: dict) -> dict:
+		return self.session.post(f"{self.api}{endpoint}", json=data).json()
+
+	def _get(self, endpoint: str, params: dict = None) -> dict:
+		return self.session.get(f"{self.api}{endpoint}", params=params).json()
+
 	def login_sid(self, sid: str) -> dict:
-		data = loads(b64decode(
-			reduce(lambda a, e: a.replace(*e), (
-				"-+",
-				"_/"),
-				sid + "=" * (
-					-len(sid) % 4)).encode()
-				)[1:-20].decode())
+		padded = sid + "=" * (-len(sid) % 4)
+		decoded = b64decode(
+			padded.replace("-", "+").replace("_", "/").encode())
+		data = loads(decoded[1:-20].decode())
 		self.sid = sid
 		self.user_id = data["2"]
 		self.session.headers["Cookie"] = f"sid={self.sid}"
 		return data
-	
+
 	def my_chat_threads(
 			self,
 			ndc_id: int,
@@ -41,19 +43,20 @@ class AminoApps:
 			"start": start,
 			"size": size
 		}
-		response = self.session.post(
-			f"{self.api}/my-chat-threads", json=data).json()
+		response = self._post("/my-chat-threads", data)
 		return objects.ChatThreads(response["result"]["threadList"]).parse()
 
 	def get_joined_communities(self) -> dict:
-		return convert(
-			self.session.get(
-				f"{self.partial_api}/global-chat-communities").text)
+		return convert(self.session.get(
+			f"{self.partial_api}/global-chat-communities").text)
 
 	def search_community(self, query: str, page: int = 1) -> dict:
-		return convert(
-			self.session.get(
-				f"{self.partial_api}/community/search-suggestion?q={query}&page={page}").text)
+		params = {
+			"q": query,
+			"page": page
+		}
+		return convert(self.session.get(
+			f"{self.partial_api}/community/search-suggestion", params=params).text)
 
 	def send_message(
 			self,
@@ -72,8 +75,7 @@ class AminoApps:
 				"clientRefId": 0
 			}
 		}
-		return self.session.post(
-			f"{self.api}/add-chat-message", json=data).json()
+		return self._post("/add-chat-message", data)
 
 	def send_image(
 			self,
@@ -93,9 +95,8 @@ class AminoApps:
 				"clientRefId": 0
 			}
 		}
-		return self.session.post(
-			f"{self.api}/add-chat-message", json=data).json()
-	
+		return self._post("/add-chat-message", data)
+
 	def send_sticker(
 			self,
 			ndc_id: int,
@@ -113,9 +114,8 @@ class AminoApps:
 				"clientRefId": 0
 			}
 		}
-		return self.session.post(
-			f"{self.api}/add-chat-message", json=data).json()
-		
+		return self._post("/add-chat-message", data)
+
 	def submit_comment(
 			self,
 			ndc_id: int,
@@ -136,57 +136,47 @@ class AminoApps:
 		elif user_id:
 			data["postType"] = "user"
 			data["postId"] = user_id
-		return self.session.post(
-			f"{self.api}/submit_comment", json=data).json()
-	
+		return self._post("/submit_comment", data)
+
 	def update_account(self, nickname: str) -> dict:
-		data = {
-			"nickname": nickname
-		}
-		return self.session.post(
-			f"{self.api}/update-account/{self.user_id}", json=data).json()
-	
+		data = {"nickname": nickname}
+		return self._post(f"/update-account/{self.user_id}", data)
+
 	def join_thread(self, ndc_id: int, thread_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"threadId": thread_id
 		}
-		return self.session.post(
-			f"{self.api}/join-thread", json=data).json()
-	
+		return self._post("/join-thread", data)
+
 	def leave_thread(self, ndc_id: int, thread_id: str) -> dict:
 		data = {
-			"ndcId": f"x{ndc_id}", 
+			"ndcId": f"x{ndc_id}",
 			"threadId": thread_id
 		}
-		return self.session.post(
-			f"{self.api}/leave-thread", json=data).json()
-	
+		return self._post("/leave-thread", data)
+
 	def follow_user(self, ndc_id: int, user_id: str) -> dict:
 		data = {
 			"followee_id": user_id,
 			"ndcId": f"x{ndc_id}"
 		}
-		return self.session.post(
-			f"{self.api}/follow-user", json=data).json()
-	
+		return self._post("/follow-user", data)
+
 	def unfollow_user(self, ndc_id: int, user_id: str) -> dict:
 		data = {
 			"followee_id": user_id,
 			"follower_id": self.user_id,
 			"ndcId": f"x{ndc_id}"
 		}
-		return self.session.post(
-			f"{self.api}/unfollow-user", json=data).json()
-				
+		return self._post("/unfollow-user", data)
+
 	def vote(
 			self,
 			ndc_id: int,
 			blog_id: str = None,
 			wiki_id: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if blog_id:
 			data["logType"] = "blog"
 			data["postType"] = "blog"
@@ -195,18 +185,14 @@ class AminoApps:
 			data["logType"] = "wiki"
 			data["postType"] = "wiki"
 			data["postId"] = wiki_id
-		data["postId"] = post_id
-		return self.session.post(
-			f"{self.api}/vote", json=data).json()
-	
+		return self._post("/vote", data)
+
 	def unvote(
 			self,
 			ndc_id: int,
 			blog_id: str = None,
 			wiki_id: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if blog_id:
 			data["logType"] = "blog"
 			data["postType"] = "blog"
@@ -215,40 +201,30 @@ class AminoApps:
 			data["logType"] = "wiki"
 			data["postType"] = "wiki"
 			data["postId"] = wiki_id
-		return self.session.post(
-			f"{self.api}/unvote", json=data).json()
-	
+		return self._post("/unvote", data)
+
 	def join_community(
 			self,
 			ndc_id: int,
 			invite_code: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if invite_code:
 			data["InviteCode"] = invite_code
-		return self.session.post(
-			f"{self.api}/join", json=data).json()
-	
+		return self._post("/join", data)
+
 	def leave_community(self, ndc_id: int) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
-		return self.session.post(
-			f"{self.api}/leave", json=data).json()
+		data = {"ndcId": ndc_id}
+		return self._post("/leave", data)
 
 	def request_to_join_community(
 			self,
 			ndc_id: int,
 			message: str = None) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
+		data = {"ndcId": ndc_id}
 		if message:
 			data["message"] = message
-		return self.session.post(
-			f"{self.api}/request_join", json=data).json()
-	
+		return self._post("/request_join", data)
+
 	def add_flag(
 			self,
 			ndc_id: int,
@@ -275,48 +251,44 @@ class AminoApps:
 		elif thread_id:
 			data["objectId"] = thread_id
 			data["objectType"] = 12
-		return self.session.post(
-			f"{self.api}/add-flag", json=data).json()
-	
+		return self._post("/add-flag", data)
+
 	def send_active_object(self, ndc_id: int) -> dict:
 		data = {
 			"ndcId": ndc_id
 		}
-		return self.session.post(
-			f"{self.api}/community/stats/web-user-active-time", json=data).json()
-	
-	def get_websocket_url(self) -> dict:
-		return self.session.get(f"{self.api}/chat/web-socket-url").json()
+		return self._post("/community/stats/web-user-active-time", data)
+
+	def get_wss_url(self) -> dict:
+		return self._get("/chat/web-socket-url")
 
 	def get_blocked_users(self) -> dict:
-		return self.session.get(f"{self.api}/block/full-list").json()
-	
+		return self._get("/block/full-list")
+
 	def create_chat_thread(
 			self,
 			ndc_id: int,
 			user_id: str,
 			message: str,
-			type: int = 0) -> dict:
+			thread_type: int = 0) -> dict:
 		data = {
 			"ndcId": ndc_id,
-			"inviteeUids": user_id,
+			"inviteeUids": [user_id],
 			"initialMessageContent": message,
-			"type": type
+			"type": thread_type
 		}
-		return self.session.post(
-			f"{self.api}/create-chat-thread", json=data).json()
-		
+		return self._post("/create-chat-thread", data)
+
 	def get_online_users(self, ndc_id: int) -> objects.MembersList:
-		response = self.session.get(
-			f"{self.api}/x{ndc_id}/online-members").json()
-		return objects.MembersList((response["result"]["onlineMembersList"]).parse()
-	
+		response = self._get(f"/x{ndc_id}/online-members")
+		return objects.MembersList(
+			response["result"]["onlineMembersList"]).parse()
+
 	def check_thread(self, ndc_id: int) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}"
 		}
-		return self.session.post(
-			f"{self.api}/thread-check", json=data).json()
+		return self._post("/thread-check", data)
 
 	def link_translation(
 			self,
@@ -340,12 +312,11 @@ class AminoApps:
 		elif thread_id:
 			data["objectId"] = thread_id
 			data["objectType"] = 12
-		return self.session.post(
-			f"{self.api}/link-translation", json=data).json()
+		return self._post("/link-translation", data)
 
 	def get_blog_categories(self, ndc_id: int) -> dict:
-		return self.session.get(
-			f"{self.api}/get-blog-category?ndcId={ndc_id}").json()
+		params = {"ndcId": ndc_id}
+		return self._get("/get-blog-category", params=params)
 
 	def delete_blog(self, ndc_id: int, blog_id: str) -> dict:
 		data = {
@@ -353,27 +324,24 @@ class AminoApps:
 			"postId": blog_id,
 			"postType": "blog"
 		}
-		return self.session.post(
-			f"{self.api}/post/delete", json=data).json()
-	
+		return self._post("/post/delete", data)
+
 	def get_thread_users(
 			self,
 			ndc_id: int,
 			thread_id: str,
-			type: str = "default",
+			thread_type: str = "default",
 			start: int = 0,
 			size: int = 10) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"threadId": thread_id,
-			"type": type,
+			"type": thread_type,
 			"start": start,
 			"size": size
 		}
-		return self.session.post(
-			f"{self.api}/members-in-thread",
-			json=data).json()
-	
+		return self._post("/members-in-thread", data)
+
 	def get_thread_messages(
 			self,
 			ndc_id: int,
@@ -381,16 +349,14 @@ class AminoApps:
 			size: int = 10) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
-			"threadId": thread_id, 
+			"threadId": thread_id,
 			"size": size
 		}
-		return self.session.post(
-			f"{self.api}/chat-thread-messages", json=data).json()
-	
+		return self._post("/chat-thread-messages", data)
+
 	def get_blog_votes(self, ndc_id: int, blog_id: str) -> dict:
-		return self.session.get(
-			f"{self.api}/x{ndc_id}/blog/{blog_id}/votes").json()
-	
+		return self._get(f"/x{ndc_id}/blog/{blog_id}/votes")
+
 	def poll_option(
 			self,
 			ndc_id: int,
@@ -398,7 +364,7 @@ class AminoApps:
 			option_id: str) -> dict:
 		return self.session.post(
 			f"{self.api}/poll-option/x{ndc_id}/{blog_id}/{option_id}/vote").json()
-	
+
 	def register(
 			self,
 			email: str,
@@ -411,46 +377,35 @@ class AminoApps:
 			"phoneNumber": "",
 			"secret2": password,
 			"validationContext": {
-				"data": {
-					"code": verification_code
-				},
-			"code": verification_code,
-			"identity": email,
-			"type": 1,
-			"__original": {
-			"data": {
-				"code": verification_code
-			},
-			"code": verification_code,
-			"identity": email,
-			"type": 1,
-			"__response": {}
+				"data": {"code": verification_code},
+				"code": verification_code,
+				"identity": email,
+				"type": 1,
+				"__original": {
+					"data": {"code": verification_code},
+					"code": verification_code,
+					"identity": email,
+					"type": 1,
+					"__response": {}
 				}
 			}
 		}
-		return self.session.post(
-			f"{self.api}/register", json=data).json()
-	
+		return self._post("/register", data)
+
 	def check_security_validation(
 			self,
 			email: str,
 			verification_code: str) -> dict:
 		data = {
-		"validationContext": {
-			{
-				"data": {
-					"code": verification_code
-				},
+			"validationContext": {
+				"data": {"code": verification_code},
 				"identity": email,
 				"type": 1,
-				"verifyInfoKey": None 
-				}
+				"verifyInfoKey": None
 			}
 		}
-		return self.session.post(
-			f"{self.api}/auth/check-security-validation",
-			json=data).json()
-	
+		return self._post("/auth/check-security-validation", data)
+
 	def remove_comment(
 			self,
 			ndc_id: int,
@@ -467,75 +422,51 @@ class AminoApps:
 		elif wiki_id:
 			data["postType"] = "wiki"
 			data["postId"] = wiki_id
-		return self.session.post(
-			f"{self.api}/remove_comment", json=data).json()
-	
-	def find_exist_single_chat(
-			self,
-			ndc_id: int,
-			user_id: str) -> dict:
+		return self._post("/remove_comment", data)
+
+	def find_exist_single_chat(self, ndc_id: int, user_id: str) -> dict:
 		data = {
 			"ndcId": ndc_id,
 			"uid": user_id
 		}
-		return self.session.post(
-			f"{self.api}/find-exist-single-chat",
-			json=data).json()
-	
-	def get_user_profile(self, ndc_id: int) -> dict:
-		data = {
-			"ndcId": ndc_id
-		}
-		return self.session.post(
-			f"{self.api}/get-user-profile", json=data).json()
-	
+		return self._post("/find-exist-single-chat", data)
+
 	def delete_account(self, secret: str) -> dict:
-		data = {
-			"secret": secret
-		}
-		return self.session.post(
-			f"{self.api}/account/delete-request",
-			json=data).json()
-	
+		data = {"secret": secret}
+		return self._post("/account/delete-request", data)
+
 	def get_live_threads(
 			self,
 			ndc_id: int,
 			start: int = 0,
 			size: int = 10) -> dict:
-		return self.session.get(
-			f"{self.api}/chat/live-threads?ndcId=x{ndc_id}&start={start}&size={size}").json()
-	
+		params = {"ndcId": f"x{ndc_id}", "start": start, "size": size}
+		return self._get("/chat/live-threads", params=params)
+
 	def get_thread(self, ndc_id: int, thread_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"threadId": thread_id
 		}
-		return self.session.post(
-			f"{self.api}/get-one-thread", json=data).json()
-	
+		return self._post("/get-one-thread", data)
+
 	def get_blog(self, ndc_id: int, blog_id: str) -> dict:
 		return self.session.get(
 			f"{self.web_api}/x{ndc_id}/blog/{blog_id}").json()
-	
-	def get_user_profile(
-			self,
-			ndc_id: int,
-			user_id: str) -> dict:
+
+	def get_user_profile(self, ndc_id: int, user_id: str) -> dict:
 		data = {
 			"ndcId": f"x{ndc_id}",
 			"userId": user_id
 		}
-		return self.session.post(
-			f"{self.api}/chat/get-user-profile", json=data).json()
-	
+		return self._post("/chat/get-user-profile", data)
+
 	def pick_locale(self, locale: str = "en") -> dict:
 		data = {
 			"locale": locale
 		}
-		return self.session.post(
-			f"{self.api}/pick-locale", json=data).json()
+		return self._post("/pick-locale", data)
 
 	def get_public_chats(self, ndc_id: int) -> dict:
-		return convert(
-			self.session.get(
-				f"{self.partial_api}/public-chat-threads/x{ndc_id}").text)
+		return convert(self.session.get(
+			f"{self.partial_api}/public-chat-threads/x{ndc_id}").text)
