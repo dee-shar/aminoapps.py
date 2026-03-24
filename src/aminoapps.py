@@ -4,7 +4,6 @@ from base64 import b64decode
 from requests import Session
 from html_to_json import convert
 
-
 class AminoApps:
 	def __init__(self, device_id: str) -> None:
 		self.api = "https://aminoapps.com/api"
