@@ -1,8 +1,8 @@
 from json import loads
 from utils import objects
 from base64 import b64decode
+from requests import Session
 from html_to_json import convert
-from requests import Session, Response
 
 class AminoApps:
 	def __init__(self, device_id: str) -> None:
@@ -16,10 +16,10 @@ class AminoApps:
 			"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/73.0.3683.86 Chrome/73.0.3683.86 Safari/537.36",
 			"X-Requested-With": "XMLHttpRequest"}
 
-	def _post(self, endpoint: str, data: dict) -> Response:
+	def _post(self, endpoint: str, data: dict) -> dict:
 		return self.session.post(f"{self.api}{endpoint}", json=data).json()
 
-	def _get(self, endpoint: str, params: dict = None) -> Response:
+	def _get(self, endpoint: str, params: dict = None) -> dict:
 		return self.session.get(f"{self.api}{endpoint}", params=params).json()
 
 	def login_sid(self, sid: str) -> dict:
